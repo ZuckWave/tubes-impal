@@ -1,5 +1,6 @@
 package com.reviewfilm.kasihreview.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -10,14 +11,15 @@ public class ReviewVotes {
     @Id
     private int voteId;
 
+    @Column(name = "vote_type", nullable = false)
     private String voteType; 
 
     @ManyToOne
-    @JoinColumn(name = "review_id")
+    @JoinColumn(name = "review_id", referencedColumnName = "reviewId", nullable = false)
     private Review review;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "userId", nullable = false)
     private MovieGoer voter;
 
     public ReviewVotes() {}

@@ -10,5 +10,6 @@ import com.reviewfilm.kasihreview.model.ReviewVotes;
 
 public interface ReviewVotesRepository extends JpaRepository<ReviewVotes, Integer>{
     List<ReviewVotes> findByReview(Review review);
-    List<ReviewVotes> findByMovieGoer(MovieGoer movieGoer);
+    List<ReviewVotes> findByVoter(MovieGoer voter);
+    List<ReviewVotes> findByVoteType(String voteType);
 }

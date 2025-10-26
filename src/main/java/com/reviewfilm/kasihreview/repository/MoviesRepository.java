@@ -10,7 +10,7 @@ import com.reviewfilm.kasihreview.model.Movies;
 
 @Repository
 public interface MoviesRepository extends JpaRepository<Movies, Integer>{
-    List<Movies> findbyTitleContainingIgnoreCase(String title);
+    List<Movies> findByTitleContainingIgnoreCase(String title);
 
     List<Movies> findByGenre(List<String> genre);
     
