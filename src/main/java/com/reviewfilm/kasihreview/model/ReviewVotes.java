@@ -31,15 +31,34 @@ public class ReviewVotes {
         this.voter = voter;
     }
 
-    public int getVoteId() { return voteId; }
-    public void setVoteId(int voteId) { this.voteId = voteId; }
+    public int getVoteId() { 
+        return voteId; 
+    }
+    
+    public void setVoteId(int voteId) { 
+        this.voteId = voteId; 
+    }
 
-    public String getVoteType() { return voteType; }
-    public void setVoteType(String voteType) { this.voteType = voteType; }
+    public String getVoteType() { 
+        return voteType; 
+    }
 
-    public Review getReview() { return review; }
-    public void setReview(Review review) { this.review = review; }
+    public void setVoteType(String voteType) { 
+        this.voteType = voteType; 
+    }
 
-    public MovieGoer getVoter() { return voter; }
-    public void setVoter(MovieGoer voter) { this.voter = voter; }
+    public Review getReview() { 
+        return review; 
+    }
+    public void setReview(Review review) { 
+        this.review = review; 
+    }
+
+    public MovieGoer getVoter() { 
+        return voter; 
+    }
+
+    public void setVoter(MovieGoer voter) { 
+        this.voter = voter; 
+    }
 }

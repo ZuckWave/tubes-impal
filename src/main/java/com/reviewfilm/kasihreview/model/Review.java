@@ -44,27 +44,67 @@ public class Review {
         this.votes = votes;
     }
 
-    public int getReviewId() { return reviewId; }
-    public void setReviewId(int reviewId) { this.reviewId = reviewId; }
+    public int getReviewId() { 
+        return reviewId; 
+    }
 
-    public int getRating() { return rating; }
-    public void setRating(int rating) { this.rating = rating; }
+    public void setReviewId(int reviewId) { 
+        this.reviewId = reviewId; 
+    }
 
-    public String getReviewText() { return reviewText; }
-    public void setReviewText(String reviewText) { this.reviewText = reviewText; }
+    public int getRating() { 
+        return rating; 
+    }
+    
+    public void setRating(int rating) { 
+        this.rating = rating; 
+    }
 
-    public boolean getIsSpoiler() { return isSpoiler; }
-    public void setIsSpoiler(boolean isSpoiler) { this.isSpoiler = isSpoiler; }
+    public String getReviewText() { 
+        return reviewText; 
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setReviewText(String reviewText) { 
+        this.reviewText = reviewText; 
+    }
 
-    public MovieGoer getMovieGoer() { return movieGoer; }
-    public void setMovieGoer(MovieGoer movieGoer) { this.movieGoer = movieGoer; }
+    public boolean getIsSpoiler() { 
+        return isSpoiler; 
+    }
 
-    public Movies getMovie() { return movie; }
-    public void setMovie(Movies movie) { this.movie = movie; }
+    public void setIsSpoiler(boolean isSpoiler) { 
+        this.isSpoiler = isSpoiler; 
+    }
 
-    public List<ReviewVotes> getVotes() { return votes; }
-    public void setVotes(List<ReviewVotes> votes) { this.votes = votes; }
+    public LocalDateTime getCreatedAt() { 
+        return createdAt; 
+    
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) { 
+        this.createdAt = createdAt; 
+    }
+
+    public MovieGoer getMovieGoer() { 
+        return movieGoer; 
+    }
+
+    public void setMovieGoer(MovieGoer movieGoer) { 
+        this.movieGoer = movieGoer; 
+    }
+
+    public Movies getMovie() { 
+        return movie; 
+    }
+    public void setMovie(Movies movie) { 
+        this.movie = movie; 
+    }
+
+    public List<ReviewVotes> getVotes() { 
+        return votes; 
+    }
+
+    public void setVotes(List<ReviewVotes> votes) { 
+        this.votes = votes; 
+    }
 }

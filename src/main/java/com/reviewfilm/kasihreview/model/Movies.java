@@ -45,27 +45,67 @@ public class Movies {
         this.reviews = reviews;
     }
 
-    public int getMovieId() { return movieId; }
-    public void setMovieId(int movieId) { this.movieId = movieId; }
+    public int getMovieId() { 
+        return movieId; 
+    }
+    
+    public void setMovieId(int movieId) { 
+        this.movieId = movieId; 
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public String getTitle() { 
+        return title; 
+    }
 
-    public int getReleaseYear() { return releaseYear; }
-    public void setReleaseYear(int releaseYear) { this.releaseYear = releaseYear; }
+    public void setTitle(String title) { 
+        this.title = title; 
+    }
 
-    public List<String> getGenre() { return genre; }
-    public void setGenre(List<String> genre) { this.genre = genre; }
+    public int getReleaseYear() { 
+        return releaseYear; 
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setReleaseYear(int releaseYear) { 
+        this.releaseYear = releaseYear; 
+    }
 
-    public String getPosterUrl() { return posterUrl; }
-    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public List<String> getGenre() { 
+        return genre; 
+    
+    }
+    public void setGenre(List<String> genre) { 
+        this.genre = genre; 
+    }
 
-    public float getAvgRating() { return avgRating; }
-    public void setAvgRating(float avgRating) { this.avgRating = avgRating; }
+    public String getDescription() { 
+        return description; 
+    }
 
-    public List<Review> getReviews() { return reviews; }
-    public void setReviews(List<Review> reviews) { this.reviews = reviews; }
+    public void setDescription(String description) { 
+        this.description = description; 
+    }
+
+    public String getPosterUrl() { 
+        return posterUrl; 
+    }
+
+    public void setPosterUrl(String posterUrl) { 
+        this.posterUrl = posterUrl; 
+    }
+
+    public float getAvgRating() { 
+        return avgRating; 
+    }
+
+    public void setAvgRating(float avgRating) { 
+        this.avgRating = avgRating; 
+    }
+
+    public List<Review> getReviews() { 
+        return reviews; 
+    }
+
+    public void setReviews(List<Review> reviews) { 
+        this.reviews = reviews; 
+    }
 }
