@@ -8,8 +8,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "watchlist")
 public class Watchlist {
     @Id
     private int watchlistId;
