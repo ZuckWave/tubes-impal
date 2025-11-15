@@ -13,12 +13,27 @@ public class WatchlistDTO {
         this.posterUrl = posterUrl;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() { 
+        return id;
+    }
 
-    public String getMovieTitle() { return movieTitle; }
-    public void setMovieTitle(String movieTitle) { this.movieTitle = movieTitle; }
+    public void setId(int id) { 
+        this.id = id; 
+    }
 
-    public String getPosterUrl() { return posterUrl; }
-    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public String getMovieTitle() { 
+        return movieTitle; 
+    }
+
+    public void setMovieTitle(String movieTitle) { 
+        this.movieTitle = movieTitle; 
+    }
+
+    public String getPosterUrl() { 
+        return posterUrl; 
+    }
+
+    public void setPosterUrl(String posterUrl) { 
+        this.posterUrl = posterUrl; 
+    }
 }

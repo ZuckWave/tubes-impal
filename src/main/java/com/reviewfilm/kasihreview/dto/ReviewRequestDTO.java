@@ -15,15 +15,34 @@ public class ReviewRequestDTO {
         this.rating = rating;
     }
 
-    public int getMovieId() { return movieId; }
-    public void setMovieId(int movieId) { this.movieId = movieId; }
+    public int getMovieId() { 
+        return movieId; 
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public void setMovieId(int movieId) { 
+        this.movieId = movieId; 
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public int getUserId() { 
+        return userId; 
+    }
+    public void setUserId(int userId) { 
+        this.userId = userId; 
+    }
 
-    public int getRating() { return rating; }
-    public void setRating(int rating) { this.rating = rating; }
+    public String getContent() { 
+        return content; 
+    }
+
+    public void setContent(String content) { 
+        this.content = content; 
+    }
+
+    public int getRating() { 
+        return rating; 
+    }
+
+    public void setRating(int rating) { 
+        this.rating = rating; 
+    }
 }

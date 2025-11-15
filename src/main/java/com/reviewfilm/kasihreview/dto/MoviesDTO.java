@@ -19,21 +19,51 @@ public class MoviesDTO {
         this.posterUrl = posterUrl;
     }
 
-    public int getMovieId() { return movieId; }
-    public void setMovieId(int movieId) { this.movieId = movieId; }
+    public int getMovieId() { 
+        return movieId; 
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setMovieId(int movieId) { 
+        this.movieId = movieId; 
+    }
 
-    public String getGenre() { return genre; }
-    public void setGenre(String genre) { this.genre = genre; }
+    public String getTitle() { 
+        return title; 
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setTitle(String title) { 
+        this.title = title; 
+    }
 
-    public double getRating() { return rating; }
-    public void setRating(double rating) { this.rating = rating; }
+    public String getGenre() { 
+        return genre; 
+    }
 
-    public String getPosterUrl() { return posterUrl; }
-    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public void setGenre(String genre) { 
+        this.genre = genre; 
+    }
+
+    public String getDescription() { 
+        return description; 
+    }
+    
+    public void setDescription(String description) { 
+        this.description = description; 
+    }
+
+    public double getRating() { 
+        return rating; 
+    }
+
+    public void setRating(double rating) { 
+        this.rating = rating; 
+    }
+
+    public String getPosterUrl() { 
+        return posterUrl; 
+    }
+
+    public void setPosterUrl(String posterUrl) { 
+        this.posterUrl = posterUrl; 
+    }
 }

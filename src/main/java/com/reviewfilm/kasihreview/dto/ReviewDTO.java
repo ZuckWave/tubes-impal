@@ -19,21 +19,51 @@ public class ReviewDTO {
         this.downvotes = downvotes;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() { 
+        return id; 
+    }
 
-    public String getReviewerName() { return reviewerName; }
-    public void setReviewerName(String reviewerName) { this.reviewerName = reviewerName; }
+    public void setId(int id) { 
+        this.id = id; 
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public String getReviewerName() { 
+        return reviewerName; 
+    }
 
-    public int getRating() { return rating; }
-    public void setRating(int rating) { this.rating = rating; }
+    public void setReviewerName(String reviewerName) { 
+        this.reviewerName = reviewerName; 
+    }
 
-    public int getUpvotes() { return upvotes; }
-    public void setUpvotes(int upvotes) { this.upvotes = upvotes; }
+    public String getContent() { 
+        return content; 
+    }
 
-    public int getDownvotes() { return downvotes; }
-    public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
+    public void setContent(String content) { 
+        this.content = content; 
+    }
+
+    public int getRating() { 
+        return rating; 
+    }
+
+    public void setRating(int rating) { 
+        this.rating = rating; 
+    }
+
+    public int getUpvotes() { 
+        return upvotes; 
+    }
+
+    public void setUpvotes(int upvotes) { 
+        this.upvotes = upvotes; 
+    }
+
+    public int getDownvotes() { 
+        return downvotes; 
+    }
+
+    public void setDownvotes(int downvotes) { 
+        this.downvotes = downvotes; 
+    }
 }
