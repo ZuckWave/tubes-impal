@@ -57,7 +57,7 @@ public class MovieGoerController {
         MovieGoer mg = movieGoerRepo.findById(id).orElse(null);
         if (mg != null) {
             mg.setUsername(updated.getUsername());
-            mg.setPassword(updated.getPassword());
+            mg.setPassword_hash(updated.getPassword_hash());
             mg.setBio(updated.getBio());
             mg.setFullName(updated.getFullName());
             mg.setAvatarUrl(updated.getAvatarUrl());

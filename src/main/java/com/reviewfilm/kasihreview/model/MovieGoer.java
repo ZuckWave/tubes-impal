@@ -16,7 +16,6 @@ public class MovieGoer {
     private int userId;
 
     private String username;
-    private String password;
     private String bio;
     private String fullName;
     private String password_hash;
@@ -33,10 +32,9 @@ public class MovieGoer {
 
     }
 
-    public MovieGoer(int userId, String username, String password, String bio, String fullName, String password_hash, String salt, String avatarUrl, List<Review> reviews, Watchlist watchlist) {
+    public MovieGoer(int userId, String username, String bio, String fullName, String password_hash, String salt, String avatarUrl, List<Review> reviews, Watchlist watchlist) {
         this.userId = userId;
         this.username = username;
-        this.password = password;
         this.bio = bio;
         this.fullName = fullName;
         this.password_hash = password_hash;
@@ -60,14 +58,6 @@ public class MovieGoer {
 
     public void setUsername(String username) { 
         this.username = username; 
-    }
-
-    public String getPassword() { 
-        return password; 
-    }
-
-    public void setPassword(String password) { 
-        this.password = password; 
     }
 
     public String getBio() { 
