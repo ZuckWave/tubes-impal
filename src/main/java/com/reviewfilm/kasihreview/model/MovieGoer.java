@@ -48,7 +48,6 @@ public class MovieGoer {
         this.avatarUrl = avatarUrl;
     }
 
-    // Getters and Setters
     public int getUserId() { 
         return userId; 
     }

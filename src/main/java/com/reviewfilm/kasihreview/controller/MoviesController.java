@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.MoviesDTO;
+import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
+import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.Movies;
 import com.reviewfilm.kasihreview.repository.MoviesRepository;
 
@@ -32,10 +34,10 @@ public class MoviesController {
         MoviesDTO dto = new MoviesDTO();
         dto.setMovieId(movie.getMovieId());
         dto.setTitle(movie.getTitle());
-        dto.setGenre(movie.getGenre()); // List<String>
+        dto.setGenre(movie.getGenre()); 
         dto.setReleaseYear(movie.getReleaseYear());
         dto.setDescription(movie.getDescription());
-        dto.setRating(movie.getAvgRating()); // float -> double
+        dto.setRating(movie.getAvgRating()); 
         dto.setPosterUrl(movie.getPosterUrl());
         
         return dto;
@@ -51,32 +53,65 @@ public class MoviesController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MoviesDTO> getMovieById(@PathVariable int id) {
-        Movies movie = moviesRepo.findById(id).orElse(null);
-        if (movie == null) {
-            return ResponseEntity.notFound().build();
-        }
+        Movies movie = moviesRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
         return ResponseEntity.ok(convertToDTO(movie));
     }
 
     @PostMapping
     public ResponseEntity<MoviesDTO> createMovie(@RequestBody Movies movie) {
+        if (movie.getTitle() == null || movie.getTitle().trim().isEmpty()) {
+            throw new ValidationException("Movie title cannot be empty");
+        }
+        
+        if (movie.getReleaseYear() < 1888 || movie.getReleaseYear() > 2100) {
+            throw new ValidationException("Invalid release year. Must be between 1888 and 2100");
+        }
+        
+        if (movie.getAvgRating() < 0 || movie.getAvgRating() > 10) {
+            throw new ValidationException("Rating must be between 0 and 10");
+        }
+        
         Movies saved = moviesRepo.save(movie);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<MoviesDTO> updateMovie(@PathVariable int id, @RequestBody Movies movie) {
-        Movies m = moviesRepo.findById(id).orElse(null);
-        if (m == null) {
-            return ResponseEntity.notFound().build();
+        Movies m = moviesRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
+        
+        // Validasi title
+        if (movie.getTitle() != null) {
+            if (movie.getTitle().trim().isEmpty()) {
+                throw new ValidationException("Movie title cannot be empty");
+            }
+            m.setTitle(movie.getTitle());
         }
         
-        m.setTitle(movie.getTitle());
-        m.setDescription(movie.getDescription());
-        m.setGenre(movie.getGenre());
-        m.setReleaseYear(movie.getReleaseYear());
-        m.setPosterUrl(movie.getPosterUrl());
-        m.setAvgRating(movie.getAvgRating());
+        if (movie.getReleaseYear() != 0) {
+            if (movie.getReleaseYear() < 1888 || movie.getReleaseYear() > 2100) {
+                throw new ValidationException("Invalid release year. Must be between 1888 and 2100");
+            }
+            m.setReleaseYear(movie.getReleaseYear());
+        }
+        
+        if (movie.getAvgRating() != 0) {
+            if (movie.getAvgRating() < 0 || movie.getAvgRating() > 10) {
+                throw new ValidationException("Rating must be between 0 and 10");
+            }
+            m.setAvgRating(movie.getAvgRating());
+        }
+        
+        if (movie.getDescription() != null) {
+            m.setDescription(movie.getDescription());
+        }
+        if (movie.getGenre() != null) {
+            m.setGenre(movie.getGenre());
+        }
+        if (movie.getPosterUrl() != null) {
+            m.setPosterUrl(movie.getPosterUrl());
+        }
         
         Movies savedMovie = moviesRepo.save(m);
         return ResponseEntity.ok(convertToDTO(savedMovie));
@@ -84,10 +119,10 @@ public class MoviesController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMovie(@PathVariable int id) {
-        if (!moviesRepo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        moviesRepo.deleteById(id);
-        return ResponseEntity.ok("Movie deleted");
+        Movies movie = moviesRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
+        
+        moviesRepo.delete(movie);
+        return ResponseEntity.ok("Movie deleted successfully");
     }
 }

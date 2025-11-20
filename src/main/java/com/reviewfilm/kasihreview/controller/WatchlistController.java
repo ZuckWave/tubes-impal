@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.WatchlistDTO;
 import com.reviewfilm.kasihreview.dto.WatchlistDTO.MovieInWatchlistDTO;
+import com.reviewfilm.kasihreview.exception.DuplicateResourceException;
+import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
 import com.reviewfilm.kasihreview.model.MovieGoer;
 import com.reviewfilm.kasihreview.model.Movies;
 import com.reviewfilm.kasihreview.model.Watchlist;
@@ -38,11 +40,7 @@ public class WatchlistController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<WatchlistDTO> getWatchlistByUserId(@PathVariable int userId) {
         Watchlist watchlist = watchlistRepo.findByMovieGoer_UserId(userId)
-                .orElse(null);
-        
-        if (watchlist == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Watchlist", "userId", userId));
 
         WatchlistDTO dto = convertToDTO(watchlist);
         return ResponseEntity.ok(dto);
@@ -59,14 +57,11 @@ public class WatchlistController {
 
     @PostMapping("/user/{userId}")
     public ResponseEntity<WatchlistDTO> createWatchlistForUser(@PathVariable int userId) {
-        MovieGoer movieGoer = movieGoerRepo.findById(userId).orElse(null);
-        
-        if (movieGoer == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        MovieGoer movieGoer = movieGoerRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "userId", userId));
 
         if (watchlistRepo.findByMovieGoer_UserId(userId).isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new DuplicateResourceException("Watchlist", "userId", userId);
         }
 
         Watchlist watchlist = new Watchlist(movieGoer);
@@ -82,21 +77,13 @@ public class WatchlistController {
             @PathVariable int movieId) {
         
         Watchlist watchlist = watchlistRepo.findByMovieGoer_UserId(userId)
-                .orElse(null);
-        
-        if (watchlist == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Watchlist", "userId", userId));
 
-        Movies movie = moviesRepo.findById(movieId).orElse(null);
-        
-        if (movie == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        Movies movie = moviesRepo.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
-        if (watchlist.getMovies().stream()
-                .anyMatch(m -> m.getMovieId() == movieId)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if (watchlist.getMovies().stream().anyMatch(m -> m.getMovieId() == movieId)) {
+            throw new DuplicateResourceException("Movie already exists in watchlist");
         }
 
         watchlist.addMovie(movie);
@@ -111,17 +98,10 @@ public class WatchlistController {
             @PathVariable int movieId) {
         
         Watchlist watchlist = watchlistRepo.findByMovieGoer_UserId(userId)
-                .orElse(null);
-        
-        if (watchlist == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Watchlist", "userId", userId));
 
-        Movies movie = moviesRepo.findById(movieId).orElse(null);
-        
-        if (movie == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        Movies movie = moviesRepo.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
         watchlist.removeMovie(movie);
         Watchlist saved = watchlistRepo.save(watchlist);
@@ -132,12 +112,7 @@ public class WatchlistController {
     @DeleteMapping("/user/{userId}")
     public ResponseEntity<String> deleteWatchlist(@PathVariable int userId) {
         Watchlist watchlist = watchlistRepo.findByMovieGoer_UserId(userId)
-                .orElse(null);
-        
-        if (watchlist == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Watchlist not found");
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Watchlist", "userId", userId));
 
         watchlistRepo.delete(watchlist);
         return ResponseEntity.ok("Watchlist deleted successfully");

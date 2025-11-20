@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.ReviewDTO;
 import com.reviewfilm.kasihreview.dto.ReviewRequestDTO;
+import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
+import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.MovieGoer;
 import com.reviewfilm.kasihreview.model.Movies;
 import com.reviewfilm.kasihreview.model.Review;
@@ -51,7 +53,6 @@ public class ReviewController {
             dto.setReviewerName(review.getMovieGoer().getUsername());
         }
         
-        // Dari Movie
         if (review.getMovie() != null) {
             dto.setMovieId(review.getMovie().getMovieId());
             dto.setMovieTitle(review.getMovie().getTitle());
@@ -90,35 +91,25 @@ public class ReviewController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ReviewDTO> getReviewById(@PathVariable int id) {
-        Review review = reviewRepo.findById(id).orElse(null);
-        if (review == null) {
-            return ResponseEntity.notFound().build();
-        }
+        Review review = reviewRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
         return ResponseEntity.ok(convertToDTO(review));
     }
 
     @PostMapping
-    public ResponseEntity<?> createReview(@RequestBody ReviewRequestDTO request) {
+    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewRequestDTO request) {
         if (request.getRating() < 1 || request.getRating() > 5) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Rating must be between 1 and 5");
+            throw new ValidationException("Rating must be between 1 and 5");
         }
 
-        Movies movie = moviesRepo.findById(request.getMovieId()).orElse(null);
-        if (movie == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Movie not found with id: " + request.getMovieId());
-        }
+        Movies movie = moviesRepo.findById(request.getMovieId())
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", request.getMovieId()));
 
-        MovieGoer user = movieGoerRepo.findById(request.getUserId()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User not found with id: " + request.getUserId());
-        }
+        MovieGoer user = movieGoerRepo.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", request.getUserId()));
 
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Review content cannot be empty");
+            throw new ValidationException("Review content cannot be empty");
         }
 
         Review review = new Review();
@@ -134,15 +125,12 @@ public class ReviewController {
 
     @PostMapping("/{id}/vote")
     public ResponseEntity<String> voteReview(@PathVariable int id, @RequestBody ReviewVotes vote) {
-        Review review = reviewRepo.findById(id).orElse(null);
-        if (review == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found");
-        }
+        Review review = reviewRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
         
         String voteType = vote.getVoteType();
         if (!"upvote".equalsIgnoreCase(voteType) && !"downvote".equalsIgnoreCase(voteType)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Invalid vote type. Must be 'upvote' or 'downvote'");
+            throw new ValidationException("Invalid vote type. Must be 'upvote' or 'downvote'");
         }
         
         vote.setReview(review);
@@ -153,10 +141,10 @@ public class ReviewController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteReview(@PathVariable int id) {
-        if (!reviewRepo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        reviewRepo.deleteById(id);
-        return ResponseEntity.ok("Review deleted");
+        Review review = reviewRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
+        
+        reviewRepo.delete(review);
+        return ResponseEntity.ok("Review deleted successfully");
     }
 }

@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.MovieGoerDTO;
+import com.reviewfilm.kasihreview.exception.DuplicateResourceException;
+import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
+import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.MovieGoer;
 import com.reviewfilm.kasihreview.model.Movies;
 import com.reviewfilm.kasihreview.model.Review;
@@ -41,16 +44,13 @@ public class MovieGoerController {
     @Autowired
     private WatchlistRepository watchlistRepo;
 
-    // Convert Entity to DTO
     private MovieGoerDTO convertToDTO(MovieGoer movieGoer) {
         if (movieGoer == null) return null;
         
         MovieGoerDTO dto = new MovieGoerDTO();
         dto.setId(movieGoer.getUserId());
         dto.setUsername(movieGoer.getUsername());
-        // Sesuaikan dengan field di entity MovieGoer
-        // Jika tidak ada email, bisa set null atau field lain
-        dto.setEmail(null); // atau movieGoer.getEmail() jika ada
+        dto.setEmail(null); 
         dto.setProfilePicture(movieGoer.getAvatarUrl());
         
         return dto;
@@ -66,31 +66,62 @@ public class MovieGoerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MovieGoerDTO> getMovieGoerById(@PathVariable int id) {
-        MovieGoer movieGoer = movieGoerRepo.findById(id).orElse(null);
-        if (movieGoer == null) {
-            return ResponseEntity.notFound().build();
-        }
+        MovieGoer movieGoer = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
         return ResponseEntity.ok(convertToDTO(movieGoer));
     }
 
     @PostMapping
     public ResponseEntity<MovieGoerDTO> createMovieGoer(@RequestBody MovieGoer movieGoer) {
+        if (movieGoer.getUsername() == null || movieGoer.getUsername().trim().isEmpty()) {
+            throw new ValidationException("Username cannot be empty");
+        }
+        if (movieGoer.getUsername().length() < 3) {
+            throw new ValidationException("Username must be at least 3 characters");
+        }
+        
+        if (movieGoer.getPassword_hash() == null || movieGoer.getPassword_hash().trim().isEmpty()) {
+            throw new ValidationException("Password cannot be empty");
+        }
+        if (movieGoer.getPassword_hash().length() < 6) {
+            throw new ValidationException("Password must be at least 6 characters");
+        }
+        
         MovieGoer saved = movieGoerRepo.save(movieGoer);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<MovieGoerDTO> updateMovieGoer(@PathVariable int id, @RequestBody MovieGoer updated) {
-        MovieGoer mg = movieGoerRepo.findById(id).orElse(null);
-        if (mg == null) {
-            return ResponseEntity.notFound().build();
+        MovieGoer mg = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
+        
+        if (updated.getUsername() != null) {
+            if (updated.getUsername().trim().isEmpty()) {
+                throw new ValidationException("Username cannot be empty");
+            }
+            if (updated.getUsername().length() < 3) {
+                throw new ValidationException("Username must be at least 3 characters");
+            }
+            mg.setUsername(updated.getUsername());
         }
         
-        mg.setUsername(updated.getUsername());
-        mg.setPassword_hash(updated.getPassword_hash());
-        mg.setBio(updated.getBio());
-        mg.setFullName(updated.getFullName());
-        mg.setAvatarUrl(updated.getAvatarUrl());
+        if (updated.getPassword_hash() != null) {
+            if (updated.getPassword_hash().length() < 6) {
+                throw new ValidationException("Password must be at least 6 characters");
+            }
+            mg.setPassword_hash(updated.getPassword_hash());
+        }
+        
+        if (updated.getBio() != null) {
+            mg.setBio(updated.getBio());
+        }
+        if (updated.getFullName() != null) {
+            mg.setFullName(updated.getFullName());
+        }
+        if (updated.getAvatarUrl() != null) {
+            mg.setAvatarUrl(updated.getAvatarUrl());
+        }
         
         MovieGoer savedMg = movieGoerRepo.save(mg);
         return ResponseEntity.ok(convertToDTO(savedMg));
@@ -98,18 +129,24 @@ public class MovieGoerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMovieGoer(@PathVariable int id) {
-        if (!movieGoerRepo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        movieGoerRepo.deleteById(id);
-        return ResponseEntity.ok("User deleted");
+        MovieGoer movieGoer = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
+        
+        movieGoerRepo.delete(movieGoer);
+        return ResponseEntity.ok("User deleted successfully");
     }
 
     @PostMapping("/{id}/review")
     public ResponseEntity<Review> buatReview(@PathVariable int id, @RequestBody Review review) {
-        MovieGoer user = movieGoerRepo.findById(id).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
+        MovieGoer user = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
+
+        if (review.getRating() < 1 || review.getRating() > 10) {
+            throw new ValidationException("Rating must be between 1 and 10");
+        }
+        
+        if (review.getReviewText() == null || review.getReviewText().trim().isEmpty()) {
+            throw new ValidationException("Review text cannot be empty");
         }
 
         review.setMovieGoer(user);
@@ -119,50 +156,46 @@ public class MovieGoerController {
 
     @PostMapping("/{id}/watchlist/{movieId}")
     public ResponseEntity<String> saveMovieToWatchlist(@PathVariable int id, @PathVariable int movieId) {
-        MovieGoer user = movieGoerRepo.findById(id).orElse(null);
-        Movies movie = moviesRepo.findById(movieId).orElse(null);
+        MovieGoer user = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
         
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-        if (movie == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Movie not found");
-        }
+        Movies movie = moviesRepo.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
         Watchlist wl = user.getWatchlist();
         if (wl == null) {
             wl = new Watchlist();
-            wl.setWatchlistId(id);
             wl.setMovieGoer(user);
             user.setWatchlist(wl);
         }
 
-        if (!wl.getMovies().contains(movie)) {
-            wl.getMovies().add(movie);
-            watchlistRepo.save(wl);
+        if (wl.getMovies().contains(movie)) {
+            throw new DuplicateResourceException("Movie already exists in watchlist");
         }
+
+        wl.getMovies().add(movie);
+        watchlistRepo.save(wl);
         
-        return ResponseEntity.ok("Movie added to watchlist");
+        return ResponseEntity.ok("Movie added to watchlist successfully");
     }
 
     @DeleteMapping("/{id}/watchlist/{movieId}")
     public ResponseEntity<String> removeMovieFromWatchlist(@PathVariable int id, @PathVariable int movieId) {
-        MovieGoer user = movieGoerRepo.findById(id).orElse(null);
+        MovieGoer user = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
         
-        if (user == null || user.getWatchlist() == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User or watchlist not found");
+        if (user.getWatchlist() == null) {
+            throw new ResourceNotFoundException("Watchlist not found for this user");
         }
         
         boolean removed = user.getWatchlist().getMovies()
             .removeIf(m -> m.getMovieId() == movieId);
         
-        if (removed) {
-            movieGoerRepo.save(user);
-            return ResponseEntity.ok("Movie removed from watchlist");
+        if (!removed) {
+            throw new ResourceNotFoundException("Movie", "movieId", movieId);
         }
         
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body("Movie not found in watchlist");
+        movieGoerRepo.save(user);
+        return ResponseEntity.ok("Movie removed from watchlist successfully");
     }
 }

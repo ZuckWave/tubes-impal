@@ -56,7 +56,6 @@ public class Movies {
         this.avgRating = avgRating;
     }
 
-    // Getters and Setters
     public int getMovieId() { 
         return movieId; 
     }
