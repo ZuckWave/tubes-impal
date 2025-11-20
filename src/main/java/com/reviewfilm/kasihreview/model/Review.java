@@ -3,6 +3,9 @@ package com.reviewfilm.kasihreview.model;
 import java.time.LocalDateTime; 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -25,13 +28,16 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference("moviegoer-reviews")
     private MovieGoer movieGoer;
 
     @ManyToOne
     @JoinColumn(name = "movie_id")
+    @JsonBackReference("movie-reviews")
     private Movies movie;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("review-votes")
     private List<ReviewVotes> votes;
 
     public Review() {}

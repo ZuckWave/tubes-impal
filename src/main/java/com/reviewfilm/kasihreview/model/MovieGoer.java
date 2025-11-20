@@ -1,9 +1,14 @@
 package com.reviewfilm.kasihreview.model;
 
-import java.util.List; 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -13,6 +18,7 @@ import jakarta.persistence.Table;
 @Table(name = "moviegoer")
 public class MovieGoer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
 
     private String username;
@@ -23,16 +29,16 @@ public class MovieGoer {
     private String avatarUrl;
 
     @OneToMany(mappedBy = "movieGoer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("moviegoer-reviews")
     private List<Review> reviews;
 
     @OneToOne(mappedBy = "movieGoer", cascade = CascadeType.ALL)
+    @JsonBackReference("moviegoer-watchlist")
     private Watchlist watchlist;
 
-    public MovieGoer() {
+    public MovieGoer() {}
 
-    }
-
-    public MovieGoer(int userId, String username, String bio, String fullName, String password_hash, String salt, String avatarUrl, List<Review> reviews, Watchlist watchlist) {
+    public MovieGoer(int userId, String username, String bio, String fullName, String password_hash, String salt, String avatarUrl) {
         this.userId = userId;
         this.username = username;
         this.bio = bio;
@@ -40,20 +46,19 @@ public class MovieGoer {
         this.password_hash = password_hash;
         this.salt = salt;
         this.avatarUrl = avatarUrl;
-        this.reviews = reviews;
-        this.watchlist = watchlist;
     }
 
+    // Getters and Setters
     public int getUserId() { 
         return userId; 
     }
+    
     public void setUserId(int userId) { 
         this.userId = userId; 
     }
 
     public String getUsername() { 
         return username; 
-    
     }
 
     public void setUsername(String username) { 
@@ -62,7 +67,6 @@ public class MovieGoer {
 
     public String getBio() { 
         return bio; 
-    
     }
 
     public void setBio(String bio) { 
@@ -88,6 +92,7 @@ public class MovieGoer {
     public List<Review> getReviews() { 
         return reviews; 
     }
+    
     public void setReviews(List<Review> reviews) { 
         this.reviews = reviews; 
     }
@@ -95,6 +100,7 @@ public class MovieGoer {
     public Watchlist getWatchlist() { 
         return watchlist; 
     }
+    
     public void setWatchlist(Watchlist watchlist) { 
         this.watchlist = watchlist; 
     }
@@ -114,5 +120,4 @@ public class MovieGoer {
     public String getSalt() {
         return salt;
     }
-
 }

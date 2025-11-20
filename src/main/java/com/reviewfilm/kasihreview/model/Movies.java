@@ -1,12 +1,19 @@
 package com.reviewfilm.kasihreview.model;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -15,6 +22,7 @@ import jakarta.persistence.Table;
 public class Movies {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int movieId;
 
     private String title;
@@ -30,23 +38,25 @@ public class Movies {
     private float avgRating;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("movie-reviews")
     private List<Review> reviews;
 
-    public Movies() {
+    @ManyToMany(mappedBy = "movies")
+    @JsonBackReference("watchlist-movies")
+    private List<Watchlist> watchlists = new ArrayList<>();
 
-    }
+    public Movies() {}
 
-    public Movies(int movieId, String title, int releaseYear, List<String> genre, String description, String posterUrl, float avgRating, List<Review> reviews) {
-        this.movieId = movieId;
+    public Movies(String title, int releaseYear, List<String> genre, String description, String posterUrl, float avgRating) {
         this.title = title;
-        this.genre = genre;
         this.releaseYear = releaseYear;
+        this.genre = genre;
         this.description = description;
         this.posterUrl = posterUrl;
         this.avgRating = avgRating;
-        this.reviews = reviews;
     }
 
+    // Getters and Setters
     public int getMovieId() { 
         return movieId; 
     }
@@ -73,8 +83,8 @@ public class Movies {
 
     public List<String> getGenre() { 
         return genre; 
-    
     }
+    
     public void setGenre(List<String> genre) { 
         this.genre = genre; 
     }
@@ -109,5 +119,13 @@ public class Movies {
 
     public void setReviews(List<Review> reviews) { 
         this.reviews = reviews; 
+    }
+
+    public List<Watchlist> getWatchlists() {
+        return watchlists;
+    }
+
+    public void setWatchlists(List<Watchlist> watchlists) {
+        this.watchlists = watchlists;
     }
 }

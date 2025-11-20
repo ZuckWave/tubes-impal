@@ -1,5 +1,7 @@
 package com.reviewfilm.kasihreview.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,10 +20,12 @@ public class ReviewVotes {
 
     @ManyToOne
     @JoinColumn(name = "review_id", referencedColumnName = "reviewId", nullable = false)
+    @JsonBackReference("review-votes")
     private Review review;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId", nullable = false)
+    @JsonBackReference("voter-votes")
     private MovieGoer voter;
 
     public ReviewVotes() {}

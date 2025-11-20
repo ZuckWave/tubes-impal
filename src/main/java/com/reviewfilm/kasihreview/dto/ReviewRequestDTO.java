@@ -5,14 +5,16 @@ public class ReviewRequestDTO {
     private int userId;
     private String content;
     private int rating;
+    private boolean isSpoiler;
 
     public ReviewRequestDTO() {}
 
-    public ReviewRequestDTO(int movieId, int userId, String content, int rating) {
+    public ReviewRequestDTO(int movieId, int userId, String content, int rating, boolean isSpoiler) {
         this.movieId = movieId;
         this.userId = userId;
         this.content = content;
         this.rating = rating;
+        this.isSpoiler = isSpoiler;
     }
 
     public int getMovieId() { 
@@ -26,6 +28,7 @@ public class ReviewRequestDTO {
     public int getUserId() { 
         return userId; 
     }
+
     public void setUserId(int userId) { 
         this.userId = userId; 
     }
@@ -44,5 +47,13 @@ public class ReviewRequestDTO {
 
     public void setRating(int rating) { 
         this.rating = rating; 
+    }
+
+    public boolean isSpoiler() {
+        return isSpoiler;
+    }
+
+    public void setSpoiler(boolean spoiler) {
+        isSpoiler = spoiler;
     }
 }

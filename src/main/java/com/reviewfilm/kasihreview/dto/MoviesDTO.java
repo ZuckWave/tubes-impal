@@ -1,19 +1,24 @@
 package com.reviewfilm.kasihreview.dto;
 
+import java.util.List;
+
 public class MoviesDTO {
     private int movieId;
     private String title;
-    private String genre;
+    private List<String> genre; 
+    private int releaseYear; 
     private String description;
     private double rating;
     private String posterUrl;
 
     public MoviesDTO() {}
 
-    public MoviesDTO(int movieId, String title, String genre, String description, double rating, String posterUrl) {
+    public MoviesDTO(int movieId, String title, List<String> genre, int releaseYear, 
+                     String description, double rating, String posterUrl) {
         this.movieId = movieId;
         this.title = title;
         this.genre = genre;
+        this.releaseYear = releaseYear;
         this.description = description;
         this.rating = rating;
         this.posterUrl = posterUrl;
@@ -35,12 +40,20 @@ public class MoviesDTO {
         this.title = title; 
     }
 
-    public String getGenre() { 
+    public List<String> getGenre() { 
         return genre; 
     }
 
-    public void setGenre(String genre) { 
+    public void setGenre(List<String> genre) { 
         this.genre = genre; 
+    }
+
+    public int getReleaseYear() { 
+        return releaseYear; 
+    }
+
+    public void setReleaseYear(int releaseYear) { 
+        this.releaseYear = releaseYear; 
     }
 
     public String getDescription() { 
