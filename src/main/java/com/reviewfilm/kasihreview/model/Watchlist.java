@@ -33,8 +33,7 @@ public class Watchlist {
         joinColumns = @JoinColumn(name = "watchlist_id"),
         inverseJoinColumns = @JoinColumn(name = "movie_id")
     )
-    @JsonManagedReference("watchlist-movies")
-    private List<Movies> movies = new ArrayList<>();
+    private List<Movies> movies = new ArrayList<>();  // ← TIDAK ADA @JsonManagedReference
 
     public Watchlist() {}
 

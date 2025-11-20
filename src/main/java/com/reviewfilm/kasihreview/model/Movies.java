@@ -3,7 +3,8 @@ package com.reviewfilm.kasihreview.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -13,6 +14,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -29,7 +32,13 @@ public class Movies {
     private int releaseYear;
 
     @ElementCollection
-    private List<String> genre;
+    @JoinTable(
+    name = "movie_genre",
+    joinColumns = @JoinColumn(name = "movie_id")
+    )
+    @Column(name = "genre")
+    private List<String> genre = new ArrayList<>();
+
 
     @Column(length = 1000)
     private String description;
@@ -42,7 +51,7 @@ public class Movies {
     private List<Review> reviews;
 
     @ManyToMany(mappedBy = "movies")
-    @JsonBackReference("watchlist-movies")
+    @JsonIgnore
     private List<Watchlist> watchlists = new ArrayList<>();
 
     public Movies() {}

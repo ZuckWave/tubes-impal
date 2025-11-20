@@ -71,7 +71,7 @@ public class MovieGoerController {
         return ResponseEntity.ok(convertToDTO(movieGoer));
     }
 
-    @PostMapping
+    @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<MovieGoerDTO> createMovieGoer(@RequestBody MovieGoer movieGoer) {
         if (movieGoer.getUsername() == null || movieGoer.getUsername().trim().isEmpty()) {
             throw new ValidationException("Username cannot be empty");
