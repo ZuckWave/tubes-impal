@@ -1,5 +1,6 @@
 package com.reviewfilm.kasihreview.controller;
 
+import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.reviewfilm.kasihreview.dto.LoginRequest;
+import com.reviewfilm.kasihreview.dto.LoginResponse;
 import com.reviewfilm.kasihreview.dto.MovieGoerDTO;
 import com.reviewfilm.kasihreview.exception.DuplicateResourceException;
 import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
@@ -90,6 +93,33 @@ public class MovieGoerController {
         MovieGoer saved = movieGoerRepo.save(movieGoer);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
     }
+
+   @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
+        throw new ValidationException("Username cannot be empty");
+    }
+    
+    if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
+        throw new ValidationException("Password cannot be empty");
+    }
+    
+    Optional<MovieGoer> movieGoerOpt = movieGoerRepo.findByUsernameAndPassword(
+        loginRequest.getUsername(), 
+        loginRequest.getPassword()
+    );
+    
+    if (!movieGoerOpt.isPresent()) {
+        LoginResponse response = new LoginResponse(false, "Username atau password salah", null);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+    
+    MovieGoer movieGoer = movieGoerOpt.get();
+    MovieGoerDTO userDTO = convertToDTO(movieGoer);
+    
+    LoginResponse response = new LoginResponse(true, "Login successful", userDTO);
+    return ResponseEntity.ok(response);
+}
 
     @PutMapping("/{id}")
     public ResponseEntity<MovieGoerDTO> updateMovieGoer(@PathVariable int id, @RequestBody MovieGoer updated) {
