@@ -9,11 +9,8 @@ import com.reviewfilm.kasihreview.model.MovieGoer;
 
 @Repository
 public interface MovieGoerRepository extends JpaRepository<MovieGoer, Integer> {
-    
-    // Method yang sudah ada
     MovieGoer findByUsername(String username);
     
-    // Method baru untuk login - menggunakan @Query karena field menggunakan underscore
     @Query("SELECT m FROM MovieGoer m WHERE m.username = :username AND m.password_hash = :password")
     Optional<MovieGoer> findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
 }
