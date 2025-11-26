@@ -1,11 +1,12 @@
 package com.reviewfilm.kasihreview.util;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 public class PasswordUtil {
     
@@ -59,7 +60,9 @@ public class PasswordUtil {
         try {
             String hashToCheck = hashPassword(password, salt);
             return hashToCheck.equals(storedHash);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            // Log the exception in production for debugging
+            System.err.println("Error verifying password: " + e.getMessage());
             return false;
         }
     }
@@ -93,7 +96,9 @@ public class PasswordUtil {
             String storedHash = parts[1];
             
             return verifyPassword(password, storedHash, salt);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            // Base64 decoding failed or invalid format
+            System.err.println("Error decoding stored entry: " + e.getMessage());
             return false;
         }
     }
