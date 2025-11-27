@@ -69,6 +69,39 @@ public class MovieGoerController {
         return ResponseEntity.ok(dtoList);
     }
 
+    // LOGIN ENDPOINT - HARUS SEBELUM /{id}
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
+            throw new ValidationException("Username cannot be empty");
+        }
+        
+        if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
+            throw new ValidationException("Password cannot be empty");
+        }
+        
+        MovieGoer movieGoer = movieGoerRepo.findByUsername(loginRequest.getUsername());
+        
+        if (movieGoer == null) {
+            LoginResponse response = new LoginResponse(false, "Username atau password salah", null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        
+        boolean passwordMatches = PasswordUtil.verifyPasswordFromEntry(
+            loginRequest.getPassword(), 
+            movieGoer.getPassword_hash()
+        );
+        
+        if (!passwordMatches) {
+            LoginResponse response = new LoginResponse(false, "Username atau password salah", null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        
+        MovieGoerDTO userDTO = convertToDTO(movieGoer);
+        LoginResponse response = new LoginResponse(true, "Login successful", userDTO);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MovieGoerDTO> getMovieGoerById(@PathVariable int id) {
         MovieGoer movieGoer = movieGoerRepo.findById(id)
@@ -92,12 +125,10 @@ public class MovieGoerController {
             throw new ValidationException("Password must be at least 6 characters");
         }
         
-        // Check if username already exists
         if (movieGoerRepo.findByUsername(movieGoer.getUsername()) != null) {
             throw new DuplicateResourceException("Username already exists");
         }
         
-        // Hash password before saving
         try {
             String hashedPassword = PasswordUtil.createPasswordEntry(movieGoer.getPassword_hash());
             movieGoer.setPassword_hash(hashedPassword);
@@ -107,40 +138,6 @@ public class MovieGoerController {
         
         MovieGoer saved = movieGoerRepo.save(movieGoer);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
-            throw new ValidationException("Username cannot be empty");
-        }
-        
-        if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
-            throw new ValidationException("Password cannot be empty");
-        }
-        
-        // Find user by username
-        MovieGoer movieGoer = movieGoerRepo.findByUsername(loginRequest.getUsername());
-        
-        if (movieGoer == null) {
-            LoginResponse response = new LoginResponse(false, "Username atau password salah", null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-        
-        // Verify password against stored hash
-        boolean passwordMatches = PasswordUtil.verifyPasswordFromEntry(
-            loginRequest.getPassword(), 
-            movieGoer.getPassword_hash()
-        );
-        
-        if (!passwordMatches) {
-            LoginResponse response = new LoginResponse(false, "Username atau password salah", null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-        
-        MovieGoerDTO userDTO = convertToDTO(movieGoer);
-        LoginResponse response = new LoginResponse(true, "Login successful", userDTO);
-        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
@@ -162,7 +159,6 @@ public class MovieGoerController {
             if (updated.getPassword_hash().length() < 6) {
                 throw new ValidationException("Password must be at least 6 characters");
             }
-            // Hash new password
             try {
                 String hashedPassword = PasswordUtil.createPasswordEntry(updated.getPassword_hash());
                 mg.setPassword_hash(hashedPassword);
