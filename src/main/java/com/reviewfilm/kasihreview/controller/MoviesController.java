@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.MoviesDTO;
+import com.reviewfilm.kasihreview.dto.ReviewDTO;
 import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
 import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.Movies;
+import com.reviewfilm.kasihreview.model.Review;
 import com.reviewfilm.kasihreview.repository.MoviesRepository;
+import com.reviewfilm.kasihreview.repository.ReviewRepository;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -27,6 +30,9 @@ public class MoviesController {
 
     @Autowired
     private MoviesRepository moviesRepo;
+
+    @Autowired
+    private ReviewRepository reviewRepo;
 
     private MoviesDTO convertToDTO(Movies movie) {
         if (movie == null) return null;
@@ -39,6 +45,44 @@ public class MoviesController {
         dto.setDescription(movie.getDescription());
         dto.setRating(movie.getAvgRating()); 
         dto.setPosterUrl(movie.getPosterUrl());
+        
+        return dto;
+    }
+
+    private ReviewDTO convertToReviewDTO(Review review) {
+        if (review == null) return null;
+        
+        ReviewDTO dto = new ReviewDTO();
+        dto.setReviewId(review.getReviewId());
+        
+        if (review.getMovieGoer() != null) {
+            dto.setReviewerName(review.getMovieGoer().getUsername());
+        }
+        
+        if (review.getMovie() != null) {
+            dto.setMovieId(review.getMovie().getMovieId());
+            dto.setMovieTitle(review.getMovie().getTitle());
+        }
+        
+        dto.setContent(review.getReviewText());
+        dto.setRating(review.getRating());
+        dto.setSpoiler(review.getIsSpoiler());
+        dto.setCreatedAt(review.getCreatedAt());
+        
+        int upvotes = 0;
+        int downvotes = 0;
+        
+        if (review.getVotes() != null) {
+            upvotes = (int) review.getVotes().stream()
+                .filter(vote -> "upvote".equalsIgnoreCase(vote.getVoteType()))
+                .count();
+            downvotes = (int) review.getVotes().stream()
+                .filter(vote -> "downvote".equalsIgnoreCase(vote.getVoteType()))
+                .count();
+        }
+        
+        dto.setUpvotes(upvotes);
+        dto.setDownvotes(downvotes);
         
         return dto;
     }
@@ -56,6 +100,18 @@ public class MoviesController {
         Movies movie = moviesRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
         return ResponseEntity.ok(convertToDTO(movie));
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<ReviewDTO>> getReviewsByMovieId(@PathVariable int id) {
+        Movies movie = moviesRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
+        
+        List<ReviewDTO> dtoList = reviewRepo.findByMovie(movie).stream()
+            .map(this::convertToReviewDTO)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(dtoList);
     }
 
     @PostMapping
@@ -81,7 +137,6 @@ public class MoviesController {
         Movies m = moviesRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
         
-        // Validasi title
         if (movie.getTitle() != null) {
             if (movie.getTitle().trim().isEmpty()) {
                 throw new ValidationException("Movie title cannot be empty");

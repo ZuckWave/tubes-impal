@@ -96,6 +96,18 @@ public class ReviewController {
         return ResponseEntity.ok(convertToDTO(review));
     }
 
+   @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReviewDTO>> getReviewsByUserId(@PathVariable int userId) {
+        MovieGoer user = movieGoerRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
+        
+        List<ReviewDTO> dtoList = reviewRepo.findByMovieGoer(user).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(dtoList);
+    }
+    
     @PostMapping
     public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewRequestDTO request) {
         if (request.getRating() < 1 || request.getRating() > 5) {
