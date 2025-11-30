@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,14 +28,14 @@ public class Watchlist {
     @JsonManagedReference("moviegoer-watchlist")
     private MovieGoer movieGoer;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "watchlist_movies",
-        joinColumns = @JoinColumn(name = "watchlist_id"),
-        inverseJoinColumns = @JoinColumn(name = "movie_id")
+    name = "watchlist_movies",
+    joinColumns = @JoinColumn(name = "watchlist_id"),
+    inverseJoinColumns = @JoinColumn(name = "movie_id")
     )
-    private List<Movies> movies = new ArrayList<>();  // ← TIDAK ADA @JsonManagedReference
-
+    private List<Movies> movies = new ArrayList<>();
+    
     public Watchlist() {}
 
     public Watchlist(MovieGoer movieGoer) {
