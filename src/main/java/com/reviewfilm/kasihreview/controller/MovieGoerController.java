@@ -58,6 +58,7 @@ public class MovieGoerController {
         dto.setUsername(movieGoer.getUsername());
         dto.setEmail(null); 
         dto.setProfilePicture(movieGoer.getAvatarUrl());
+        dto.setBio(movieGoer.getBio());
         
         return dto;
     }
