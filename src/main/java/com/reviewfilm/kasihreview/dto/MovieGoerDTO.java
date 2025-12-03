@@ -5,14 +5,16 @@ public class MovieGoerDTO {
     private String username;
     private String email;
     private String profilePicture;
+    private String bio;
 
     public MovieGoerDTO() {}
 
-    public MovieGoerDTO(int id, String username, String email, String profilePicture) {
+    public MovieGoerDTO(int id, String username, String email, String profilePicture, String bio) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.profilePicture = profilePicture;
+        this.bio = bio;
     }
 
     public int getId() { 
@@ -46,4 +48,13 @@ public class MovieGoerDTO {
     public void setProfilePicture(String profilePicture) { 
         this.profilePicture = profilePicture; 
     }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
 }
