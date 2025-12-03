@@ -1,6 +1,7 @@
 package com.reviewfilm.kasihreview.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -133,6 +135,38 @@ public class ReviewController {
         
         Review saved = reviewRepo.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable int id, @RequestBody Map<String, Object> updates) {
+        Review review = reviewRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
+        
+        if (updates.containsKey("content")) {
+            String content = (String) updates.get("content");
+            if (content == null || content.trim().isEmpty()) {
+                throw new ValidationException("Review content cannot be empty");
+            }
+            review.setReviewText(content);
+        }
+        
+        if (updates.containsKey("rating")) {
+            Integer rating = (Integer) updates.get("rating");
+            if (rating == null || rating < 1 || rating > 5) {
+                throw new ValidationException("Rating must be between 1 and 5");
+            }
+            review.setRating(rating);
+        }
+        
+        if (updates.containsKey("isSpoiler")) {
+            Boolean isSpoiler = (Boolean) updates.get("isSpoiler");
+            if (isSpoiler != null) {
+                review.setIsSpoiler(isSpoiler);
+            }
+        }
+        
+        Review saved = reviewRepo.save(review);
+        return ResponseEntity.ok(convertToDTO(saved));
     }
 
     @PostMapping("/{id}/vote")

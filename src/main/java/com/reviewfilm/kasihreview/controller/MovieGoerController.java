@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -69,7 +70,6 @@ public class MovieGoerController {
         return ResponseEntity.ok(dtoList);
     }
 
-    // LOGIN ENDPOINT - HARUS SEBELUM /{id}
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
@@ -175,6 +175,41 @@ public class MovieGoerController {
         }
         if (updated.getAvatarUrl() != null) {
             mg.setAvatarUrl(updated.getAvatarUrl());
+        }
+        
+        MovieGoer savedMg = movieGoerRepo.save(mg);
+        return ResponseEntity.ok(convertToDTO(savedMg));
+    }
+
+    @PatchMapping("/{id}/profile")
+    public ResponseEntity<MovieGoerDTO> updateProfile(@PathVariable int id, @RequestBody MovieGoer profileUpdate) {
+        MovieGoer mg = movieGoerRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MovieGoer", "id", id));
+        
+        if (profileUpdate.getFullName() != null) {
+            mg.setFullName(profileUpdate.getFullName());
+        }
+        
+        if (profileUpdate.getBio() != null) {
+            mg.setBio(profileUpdate.getBio());
+        }
+        
+        if (profileUpdate.getAvatarUrl() != null) {
+            mg.setAvatarUrl(profileUpdate.getAvatarUrl());
+        }
+        
+        if (profileUpdate.getUsername() != null) {
+            if (profileUpdate.getUsername().trim().isEmpty()) {
+                throw new ValidationException("Username cannot be empty");
+            }
+            if (profileUpdate.getUsername().length() < 3) {
+                throw new ValidationException("Username must be at least 3 characters");
+            }
+            MovieGoer existingUser = movieGoerRepo.findByUsername(profileUpdate.getUsername());
+            if (existingUser != null && existingUser.getUserId() != id) {
+                throw new DuplicateResourceException("Username already exists");
+            }
+            mg.setUsername(profileUpdate.getUsername());
         }
         
         MovieGoer savedMg = movieGoerRepo.save(mg);
