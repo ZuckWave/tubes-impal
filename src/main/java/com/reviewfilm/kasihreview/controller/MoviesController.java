@@ -1,6 +1,7 @@
 package com.reviewfilm.kasihreview.controller;
 
 import java.util.List;
+import java.util.Map; 
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,12 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.MoviesDTO;
 import com.reviewfilm.kasihreview.dto.ReviewDTO;
+import com.reviewfilm.kasihreview.dto.VoteDTO;
 import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
 import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.Movies;
 import com.reviewfilm.kasihreview.model.Review;
+import com.reviewfilm.kasihreview.model.ReviewVotes;
 import com.reviewfilm.kasihreview.repository.MoviesRepository;
 import com.reviewfilm.kasihreview.repository.ReviewRepository;
+import com.reviewfilm.kasihreview.repository.ReviewVotesRepository;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -33,6 +38,9 @@ public class MoviesController {
 
     @Autowired
     private ReviewRepository reviewRepo;
+
+    @Autowired
+    private ReviewVotesRepository votesRepo;
 
     private MoviesDTO convertToDTO(Movies movie) {
         if (movie == null) return null;
@@ -87,6 +95,49 @@ public class MoviesController {
         return dto;
     }
 
+    private VoteDTO convertToVoteDTO(ReviewVotes vote) {
+        if (vote == null) return null;
+        
+        VoteDTO dto = new VoteDTO();
+        dto.setVoteId(vote.getVoteId());
+        
+        if (vote.getReview() != null && vote.getReview().getMovieGoer() != null) {
+            dto.setMovieGoerId(vote.getReview().getMovieGoer().getUserId());
+            dto.setVoterName(vote.getReview().getMovieGoer().getUsername());
+        }
+        
+        if (vote.getReview() != null) {
+            dto.setReviewId(vote.getReview().getReviewId());
+        }
+        
+        dto.setVoteType(vote.getVoteType());
+        dto.setCreatedAt(null);
+        
+        return dto;
+    }
+
+    public void updateMovieAverageRating(int movieId) {
+        Movies movie = moviesRepo.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", movieId));
+        
+        List<Review> reviews = reviewRepo.findByMovie(movie);
+        
+        if (reviews.isEmpty()) {
+            movie.setAvgRating(0.0f);
+        } else {
+            double avgRating = reviews.stream()
+                    .mapToDouble(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+            
+            avgRating = Math.min(avgRating, 5.0);
+            
+            movie.setAvgRating((float) Math.round(avgRating * 10) / 10); // Round to 1 decimal
+        }
+        
+        moviesRepo.save(movie);
+    }
+
     @GetMapping
     public ResponseEntity<List<MoviesDTO>> getAllMovies() {
         List<MoviesDTO> dtoList = moviesRepo.findAll().stream()
@@ -114,6 +165,53 @@ public class MoviesController {
         return ResponseEntity.ok(dtoList);
     }
 
+    @GetMapping("/{movieId}/votes/moviegoer/{movieGoerId}")
+    public ResponseEntity<List<VoteDTO>> getVotesByMovieGoerId(
+            @PathVariable int movieId, 
+            @PathVariable int movieGoerId) {
+        
+        Movies movie = moviesRepo.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", movieId));
+        
+        List<Review> movieReviews = reviewRepo.findByMovie(movie);
+        
+        List<VoteDTO> voteDTOs = movieReviews.stream()
+                .flatMap(review -> review.getVotes().stream())
+                .filter(vote -> vote.getReview() != null && 
+                               vote.getReview().getMovieGoer() != null &&
+                               vote.getReview().getMovieGoer().getUserId() == movieGoerId)
+                .map(this::convertToVoteDTO)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(voteDTOs);
+    }
+
+    @DeleteMapping("/votes/{voteId}")
+    public ResponseEntity<String> deleteVoteByVoteId(@PathVariable int voteId) {
+        ReviewVotes vote = votesRepo.findById(voteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vote", "id", voteId));
+        
+        votesRepo.delete(vote);
+        return ResponseEntity.ok("Vote deleted successfully");
+    }
+
+    @PatchMapping("/votes/{voteId}")
+    public ResponseEntity<VoteDTO> updateVote(@PathVariable int voteId, @RequestBody Map<String, String> updates) {
+        ReviewVotes vote = votesRepo.findById(voteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vote", "id", voteId));
+        
+        if (updates.containsKey("voteType")) {
+            String voteType = updates.get("voteType");
+            if (!"upvote".equalsIgnoreCase(voteType) && !"downvote".equalsIgnoreCase(voteType)) {
+                throw new ValidationException("Invalid vote type. Must be 'upvote' or 'downvote'");
+            }
+            vote.setVoteType(voteType);
+        }
+        
+        ReviewVotes savedVote = votesRepo.save(vote);
+        return ResponseEntity.ok(convertToVoteDTO(savedVote));
+    }
+
     @PostMapping
     public ResponseEntity<MoviesDTO> createMovie(@RequestBody Movies movie) {
         if (movie.getTitle() == null || movie.getTitle().trim().isEmpty()) {
@@ -124,8 +222,8 @@ public class MoviesController {
             throw new ValidationException("Invalid release year. Must be between 1888 and 2100");
         }
         
-        if (movie.getAvgRating() < 0 || movie.getAvgRating() > 10) {
-            throw new ValidationException("Rating must be between 0 and 10");
+        if (movie.getAvgRating() < 0 || movie.getAvgRating() > 5) {
+            throw new ValidationException("Rating must be between 0 and 5");
         }
         
         Movies saved = moviesRepo.save(movie);
@@ -152,8 +250,8 @@ public class MoviesController {
         }
         
         if (movie.getAvgRating() != 0) {
-            if (movie.getAvgRating() < 0 || movie.getAvgRating() > 10) {
-                throw new ValidationException("Rating must be between 0 and 10");
+            if (movie.getAvgRating() < 0 || movie.getAvgRating() > 5) {
+                throw new ValidationException("Rating must be between 0 and 5");
             }
             m.setAvgRating(movie.getAvgRating());
         }

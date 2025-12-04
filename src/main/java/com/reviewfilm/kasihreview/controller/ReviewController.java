@@ -45,6 +45,9 @@ public class ReviewController {
     @Autowired
     private MovieGoerRepository movieGoerRepo;
 
+    @Autowired
+    private MoviesController moviesController;
+
     private ReviewDTO convertToDTO(Review review) {
         if (review == null) return null;
         
@@ -83,6 +86,11 @@ public class ReviewController {
         return dto;
     }
 
+    // FITUR BARU: Panggil method dari MoviesController untuk update rating
+    private void updateMovieAverageRating(int movieId) {
+        moviesController.updateMovieAverageRating(movieId);
+    }
+
     @GetMapping
     public ResponseEntity<List<ReviewDTO>> getAllReviews() {
         List<ReviewDTO> dtoList = reviewRepo.findAll().stream()
@@ -98,7 +106,7 @@ public class ReviewController {
         return ResponseEntity.ok(convertToDTO(review));
     }
 
-   @GetMapping("/user/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReviewDTO>> getReviewsByUserId(@PathVariable int userId) {
         MovieGoer user = movieGoerRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
@@ -134,6 +142,9 @@ public class ReviewController {
         review.setIsSpoiler(request.isSpoiler());
         
         Review saved = reviewRepo.save(review);
+        
+        updateMovieAverageRating(movie.getMovieId());
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
     }
 
@@ -141,6 +152,8 @@ public class ReviewController {
     public ResponseEntity<ReviewDTO> updateReview(@PathVariable int id, @RequestBody Map<String, Object> updates) {
         Review review = reviewRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
+        
+        int movieId = review.getMovie().getMovieId();
         
         if (updates.containsKey("content")) {
             String content = (String) updates.get("content");
@@ -166,6 +179,9 @@ public class ReviewController {
         }
         
         Review saved = reviewRepo.save(review);
+        
+        updateMovieAverageRating(movieId);
+        
         return ResponseEntity.ok(convertToDTO(saved));
     }
 
@@ -185,12 +201,53 @@ public class ReviewController {
         return ResponseEntity.ok("Vote recorded successfully");
     }
 
+    @PatchMapping("/{reviewId}/vote/{voteId}")
+    public ResponseEntity<String> updateVote(@PathVariable int reviewId, @PathVariable int voteId, 
+                                              @RequestBody Map<String, String> updates) {
+        
+        ReviewVotes vote = votesRepo.findById(voteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vote", "id", voteId));
+        
+        if (vote.getReview() == null || vote.getReview().getReviewId() != reviewId) {
+            throw new ValidationException("Vote does not belong to this review");
+        }
+        
+        if (updates.containsKey("voteType")) {
+            String voteType = updates.get("voteType");
+            if (!"upvote".equalsIgnoreCase(voteType) && !"downvote".equalsIgnoreCase(voteType)) {
+                throw new ValidationException("Invalid vote type. Must be 'upvote' or 'downvote'");
+            }
+            vote.setVoteType(voteType);
+        }
+        
+        votesRepo.save(vote);
+        return ResponseEntity.ok("Vote updated successfully");
+    }
+
+    @DeleteMapping("/{reviewId}/vote/{voteId}")
+    public ResponseEntity<String> deleteVote(@PathVariable int reviewId, @PathVariable int voteId) {
+        ReviewVotes vote = votesRepo.findById(voteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vote", "id", voteId));
+        
+        if (vote.getReview() == null || vote.getReview().getReviewId() != reviewId) {
+            throw new ValidationException("Vote does not belong to this review");
+        }
+        
+        votesRepo.delete(vote);
+        return ResponseEntity.ok("Vote deleted successfully");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteReview(@PathVariable int id) {
         Review review = reviewRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
         
+        int movieId = review.getMovie().getMovieId();
+        
         reviewRepo.delete(review);
+        
+        updateMovieAverageRating(movieId);
+        
         return ResponseEntity.ok("Review deleted successfully");
     }
 }
