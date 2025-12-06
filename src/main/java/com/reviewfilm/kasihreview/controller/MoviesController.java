@@ -1,7 +1,7 @@
 package com.reviewfilm.kasihreview.controller;
 
 import java.util.List;
-import java.util.Map; 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +101,7 @@ public class MoviesController {
         VoteDTO dto = new VoteDTO();
         dto.setVoteId(vote.getVoteId());
         
+        // Ambil movieGoer dari review
         if (vote.getReview() != null && vote.getReview().getMovieGoer() != null) {
             dto.setMovieGoerId(vote.getReview().getMovieGoer().getUserId());
             dto.setVoterName(vote.getReview().getMovieGoer().getUsername());
@@ -111,11 +112,14 @@ public class MoviesController {
         }
         
         dto.setVoteType(vote.getVoteType());
+        // ReviewVotes tidak punya createdAt, set null atau hapus
         dto.setCreatedAt(null);
         
         return dto;
     }
 
+    // Method untuk menghitung dan memperbarui average rating movie (max 5.0)
+    // Method ini public agar bisa dipanggil dari ReviewController
     public void updateMovieAverageRating(int movieId) {
         Movies movie = moviesRepo.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", movieId));
@@ -130,6 +134,7 @@ public class MoviesController {
                     .average()
                     .orElse(0.0);
             
+            // Pastikan rating tidak melebihi 5.0
             avgRating = Math.min(avgRating, 5.0);
             
             movie.setAvgRating((float) Math.round(avgRating * 10) / 10); // Round to 1 decimal
@@ -165,6 +170,7 @@ public class MoviesController {
         return ResponseEntity.ok(dtoList);
     }
 
+    // FITUR BARU: Get votes by MovieGoer ID for a specific movie
     @GetMapping("/{movieId}/votes/moviegoer/{movieGoerId}")
     public ResponseEntity<List<VoteDTO>> getVotesByMovieGoerId(
             @PathVariable int movieId, 
@@ -177,15 +183,15 @@ public class MoviesController {
         
         List<VoteDTO> voteDTOs = movieReviews.stream()
                 .flatMap(review -> review.getVotes().stream())
-                .filter(vote -> vote.getReview() != null && 
-                               vote.getReview().getMovieGoer() != null &&
-                               vote.getReview().getMovieGoer().getUserId() == movieGoerId)
+                .filter(vote -> vote.getVoter() != null && 
+                               vote.getVoter().getUserId() == movieGoerId)
                 .map(this::convertToVoteDTO)
                 .collect(Collectors.toList());
         
         return ResponseEntity.ok(voteDTOs);
     }
 
+    // FITUR BARU: Delete vote by vote ID
     @DeleteMapping("/votes/{voteId}")
     public ResponseEntity<String> deleteVoteByVoteId(@PathVariable int voteId) {
         ReviewVotes vote = votesRepo.findById(voteId)
@@ -195,6 +201,7 @@ public class MoviesController {
         return ResponseEntity.ok("Vote deleted successfully");
     }
 
+    // FITUR BARU: Update vote type (upvote/downvote)
     @PatchMapping("/votes/{voteId}")
     public ResponseEntity<VoteDTO> updateVote(@PathVariable int voteId, @RequestBody Map<String, String> updates) {
         ReviewVotes vote = votesRepo.findById(voteId)

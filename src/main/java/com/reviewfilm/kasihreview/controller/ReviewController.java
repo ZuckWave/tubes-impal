@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.ReviewDTO;
 import com.reviewfilm.kasihreview.dto.ReviewRequestDTO;
+import com.reviewfilm.kasihreview.dto.VoteRequestDTO;
 import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
 import com.reviewfilm.kasihreview.exception.ValidationException;
 import com.reviewfilm.kasihreview.model.MovieGoer;
@@ -86,7 +87,6 @@ public class ReviewController {
         return dto;
     }
 
-    // FITUR BARU: Panggil method dari MoviesController untuk update rating
     private void updateMovieAverageRating(int movieId) {
         moviesController.updateMovieAverageRating(movieId);
     }
@@ -186,16 +186,23 @@ public class ReviewController {
     }
 
     @PostMapping("/{id}/vote")
-    public ResponseEntity<String> voteReview(@PathVariable int id, @RequestBody ReviewVotes vote) {
+    public ResponseEntity<String> voteReview(@PathVariable int id, @RequestBody VoteRequestDTO request) {
         Review review = reviewRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
         
-        String voteType = vote.getVoteType();
+        String voteType = request.getVoteType();
         if (!"upvote".equalsIgnoreCase(voteType) && !"downvote".equalsIgnoreCase(voteType)) {
             throw new ValidationException("Invalid vote type. Must be 'upvote' or 'downvote'");
         }
         
+        MovieGoer user = movieGoerRepo.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", request.getUserId()));
+        
+        ReviewVotes vote = new ReviewVotes();
+        vote.setVoteType(voteType);
         vote.setReview(review);
+        vote.setVoter(user);
+        
         votesRepo.save(vote);
         
         return ResponseEntity.ok("Vote recorded successfully");
@@ -204,7 +211,6 @@ public class ReviewController {
     @PatchMapping("/{reviewId}/vote/{voteId}")
     public ResponseEntity<String> updateVote(@PathVariable int reviewId, @PathVariable int voteId, 
                                               @RequestBody Map<String, String> updates) {
-        
         ReviewVotes vote = votesRepo.findById(voteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vote", "id", voteId));
         
