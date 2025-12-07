@@ -2,8 +2,10 @@ package com.reviewfilm.kasihreview.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.reviewfilm.kasihreview.exception.DuplicateResourceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -221,6 +223,13 @@ public class MoviesController {
 
     @PostMapping
     public ResponseEntity<MoviesDTO> createMovie(@RequestBody Movies movie) {
+
+        Optional<Movies> moviePost = moviesRepo.findById(movie.getMovieId());
+
+        if (moviePost.isPresent()) {
+            throw new DuplicateResourceException("Movie", "id", movie.getMovieId());
+        }
+
         if (movie.getTitle() == null || movie.getTitle().trim().isEmpty()) {
             throw new ValidationException("Movie title cannot be empty");
         }
