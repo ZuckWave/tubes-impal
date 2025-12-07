@@ -103,9 +103,6 @@ public class ReviewController {
             dto.setVoterName(vote.getVoter().getUsername());
         }
         
-        dto.setVoteType(vote.getVoteType());
-        dto.setCreatedAt(vote.getCreatedAt());
-        
         return dto;
     }
 

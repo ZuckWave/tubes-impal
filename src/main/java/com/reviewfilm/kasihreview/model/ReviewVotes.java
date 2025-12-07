@@ -1,6 +1,6 @@
 package com.reviewfilm.kasihreview.model;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,21 +22,18 @@ public class ReviewVotes {
     
     @ManyToOne
     @JoinColumn(name = "review_id", nullable = false)
+    @JsonBackReference("review-votes")
     private Review review;
     
     @ManyToOne
-    @JoinColumn(name = "voter_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)  // ⭐ UBAH: voter_id → user_id
+    @JsonBackReference("voter-votes")
     private MovieGoer voter;
     
     @Column(name = "vote_type", nullable = false, length = 10)
     private String voteType;
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
-    public ReviewVotes() {
-        this.createdAt = LocalDateTime.now(); 
-    }
+    public ReviewVotes() {}
     
     public int getVoteId() {
         return voteId;
@@ -68,13 +65,5 @@ public class ReviewVotes {
     
     public void setVoteType(String voteType) {
         this.voteType = voteType;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }
