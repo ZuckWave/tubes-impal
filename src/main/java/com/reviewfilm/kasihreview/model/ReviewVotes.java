@@ -26,7 +26,7 @@ public class ReviewVotes {
     private Review review;
     
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)  // ⭐ UBAH: voter_id → user_id
+    @JoinColumn(name = "user_id", nullable = false)  
     @JsonBackReference("voter-votes")
     private MovieGoer voter;
     
