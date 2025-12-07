@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.reviewfilm.kasihreview.dto.ReviewDTO;
 import com.reviewfilm.kasihreview.dto.ReviewRequestDTO;
+import com.reviewfilm.kasihreview.dto.VoteDTO;
 import com.reviewfilm.kasihreview.dto.VoteRequestDTO;
 import com.reviewfilm.kasihreview.exception.ResourceNotFoundException;
 import com.reviewfilm.kasihreview.exception.ValidationException;
@@ -87,6 +88,27 @@ public class ReviewController {
         return dto;
     }
 
+    private VoteDTO convertVoteToDTO(ReviewVotes vote) {
+        if (vote == null) return null;
+        
+        VoteDTO dto = new VoteDTO();
+        dto.setVoteId(vote.getVoteId());
+        
+        if (vote.getReview() != null) {
+            dto.setReviewId(vote.getReview().getReviewId());
+        }
+        
+        if (vote.getVoter() != null) {
+            dto.setMovieGoerId(vote.getVoter().getUserId());
+            dto.setVoterName(vote.getVoter().getUsername());
+        }
+        
+        dto.setVoteType(vote.getVoteType());
+        dto.setCreatedAt(vote.getCreatedAt());
+        
+        return dto;
+    }
+
     private void updateMovieAverageRating(int movieId) {
         moviesController.updateMovieAverageRating(movieId);
     }
@@ -116,6 +138,61 @@ public class ReviewController {
             .collect(Collectors.toList());
         
         return ResponseEntity.ok(dtoList);
+    }
+
+    @GetMapping("/{reviewId}/votes")
+    public ResponseEntity<List<VoteDTO>> getVotesByReviewId(@PathVariable int reviewId) {
+        Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
+        
+        List<VoteDTO> votes = review.getVotes().stream()
+                .map(this::convertVoteToDTO)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(votes);
+    }
+
+    @GetMapping("/{reviewId}/votes/type/{voteType}")
+    public ResponseEntity<List<VoteDTO>> getVotesByReviewIdAndType(
+            @PathVariable int reviewId, 
+            @PathVariable String voteType) {
+        
+        if (!"upvote".equalsIgnoreCase(voteType) && !"downvote".equalsIgnoreCase(voteType)) {
+            throw new ValidationException("Invalid vote type. Must be 'upvote' or 'downvote'");
+        }
+        
+        Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
+        
+        List<VoteDTO> votes = review.getVotes().stream()
+                .filter(vote -> voteType.equalsIgnoreCase(vote.getVoteType()))
+                .map(this::convertVoteToDTO)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(votes);
+    }
+
+    @GetMapping("/{reviewId}/votes/summary")
+    public ResponseEntity<Map<String, Integer>> getVotesSummary(@PathVariable int reviewId) {
+        Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
+        
+        int upvotes = (int) review.getVotes().stream()
+                .filter(vote -> "upvote".equalsIgnoreCase(vote.getVoteType()))
+                .count();
+        
+        int downvotes = (int) review.getVotes().stream()
+                .filter(vote -> "downvote".equalsIgnoreCase(vote.getVoteType()))
+                .count();
+        
+        Map<String, Integer> summary = Map.of(
+            "upvotes", upvotes,
+            "downvotes", downvotes,
+            "total", upvotes + downvotes,
+            "score", upvotes - downvotes
+        );
+        
+        return ResponseEntity.ok(summary);
     }
     
     @PostMapping
