@@ -138,6 +138,11 @@ public class MovieGoerController {
         }
         
         MovieGoer saved = movieGoerRepo.save(movieGoer);
+        
+        Watchlist watchlist = new Watchlist();
+        watchlist.setMovieGoer(saved);
+        watchlistRepo.save(watchlist);
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(saved));
     }
 
