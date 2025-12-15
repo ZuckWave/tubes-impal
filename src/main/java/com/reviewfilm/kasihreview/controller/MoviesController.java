@@ -160,6 +160,13 @@ public class MoviesController {
         return ResponseEntity.ok(convertToDTO(movie));
     }
 
+    @GetMapping("/avgRating/{id}")
+    public ResponseEntity<Double> getMovieAvgRatingById(@PathVariable int id) {
+        Movies movie = moviesRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "id", id));
+        return ResponseEntity.ok(convertToDTO(movie).getRating());
+    }
+
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDTO>> getReviewsByMovieId(@PathVariable int id) {
         Movies movie = moviesRepo.findById(id)
